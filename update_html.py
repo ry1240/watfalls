@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """100falls.xlsx の Sheet1 から index.html を生成する。
 
-使い方: python build.py [入力.xlsx] [出力.html]
+使い方: python update_html.py [入力.xlsx] [出力.html]
 列構成: A=地域 B=都道府県 C=滝名 D=Googlemapリンク E=高さ F=active G=訪瀑日
 （見出し行なし。地域・都道府県は結合セルなので上から引き継ぐ）
 """
@@ -52,7 +52,7 @@ TEMPLATE = r'''<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>日本の百名滝 訪瀑記録</title>
+<title>日本の滝100選 </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
@@ -67,22 +67,49 @@ body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.7 "Zen Kaku 
 .wrap{max-width:980px;margin:0 auto;padding:28px 16px 64px}
 h1{font:800 clamp(28px,6vw,44px)/1.2 "Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;margin:0 0 4px;letter-spacing:.04em}
 .lead{color:var(--sub);margin:0 0 20px}
-.top{display:flex;flex-wrap:wrap;gap:24px 40px;align-items:flex-start;margin-bottom:28px}
-.hero{display:flex;align-items:center;gap:20px;flex:none}
-.pie{width:140px;height:140px;flex:none}
+.top{display:flex;flex-direction:column;align-items:center;gap:20px;margin-bottom:28px}
+.hero{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.pie{width:160px;height:160px;flex:none}
 .pie .trk{fill:var(--off)}
 .pie .sec{fill:var(--on)}
 .count{font-family:"Shippori Mincho",serif;line-height:1}
 .count b{font-size:56px;font-weight:800;color:var(--accent)}
 .count span{font-size:28px;font-weight:600;color:var(--sub);margin-left:4px}
-.map{flex:1 1 300px;max-width:440px;min-width:0}
+.map{width:100%;max-width:440px;min-width:0}
 .map svg{display:block;width:100%;height:auto}
 .land{fill:var(--tint);stroke:var(--line);stroke-width:1;stroke-linejoin:round}
 .box{fill:none;stroke:var(--line);stroke-dasharray:3 3}
 .lbl{font:500 11px "Zen Kaku Gothic New",sans-serif;fill:var(--sub)}
 .pin path{fill:#ea4335}
 .pin.off path{fill:var(--sub);opacity:.45}
+.pin{cursor:pointer}
 .pin circle{fill:#fff}
+.pin .hit{fill:transparent}
+.pin:focus-visible{outline:none}
+.pin:focus-visible path{stroke:var(--ink);stroke-width:1.5}
+.cap{margin:8px 0 0;font-size:14px;color:var(--sub);min-height:3.2em}
+.cap b{color:var(--ink);font-size:16px;margin-right:6px}
+.cards{display:none;list-style:none;margin:0;padding:0;background:var(--surface)}
+.cards li{padding:12px 14px;border-bottom:1px solid var(--line)}
+.c1{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.c1 b{font-size:16px;display:flex;align-items:center}
+.ck{display:inline-block;flex:none;width:20px;height:20px;border:2px solid var(--sub);border-radius:4px;margin-right:10px;vertical-align:-4px;position:relative;opacity:.5}
+.ck.on{background:var(--on);border-color:var(--on);opacity:1}
+.ck.on::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;border:solid var(--surface);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.go{flex:none;display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid var(--accent);border-radius:6px;text-decoration:none;font-weight:500}
+.c2{display:flex;flex-wrap:wrap;gap:0 14px;color:var(--sub);font-size:14px}
+.c3{color:var(--sub);font-size:14px;margin-top:2px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+@media (max-width:640px){
+ .wrap{padding-top:20px;padding-bottom:40px}
+ .tbl{display:none}.cards{display:block}
+ .top{gap:14px}.hero{gap:8px}
+ .pie{width:120px;height:120px}.count b{font-size:46px}.count span{font-size:24px}
+ .tools input,.tools select{font-size:16px;min-height:44px}
+ #chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+ .chip{flex:none;white-space:nowrap;min-height:40px;padding:6px 16px}
+ h2{font-size:18px}
+}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px}
 .tools input,.tools select,.chip{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 .tools input{flex:1 1 180px;min-width:0}
@@ -96,9 +123,9 @@ h2 small{font:400 13px "Zen Kaku Gothic New",sans-serif;color:var(--sub)}
 table{border-collapse:collapse;width:100%;min-width:560px;background:var(--surface)}
 th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-weight:500;color:var(--sub);font-size:13px;white-space:nowrap}
-td.pref{color:var(--sub);white-space:nowrap}
+td.pref{color:var(--sub);white-space:nowrap;vertical-align:middle;border-right:1px solid var(--line)}
+table{border-top:1px solid var(--line);table-layout:fixed}
 td.nm{font-weight:700}
-tr.v td.nm::before{content:"";display:inline-block;width:6px;height:14px;background:var(--on);margin-right:8px;vertical-align:-2px}
 a{color:var(--accent)}
 .act{color:var(--accent);font-weight:700}
 .none{color:var(--sub)}
@@ -108,18 +135,18 @@ a{color:var(--accent)}
 </head>
 <body>
 <div class="wrap">
-<h1>日本の百名滝 訪瀑記録</h1>
-<p class="lead">Excelの内容から自動生成したページです。</p>
+<h1>日本の滝100選</h1>
+<p class="lead">訪瀑の記録</p>
 <div class="top">
 <div class="hero">
 <svg class="pie" viewBox="0 0 120 120" role="img" id="pie"><circle class="trk" cx="60" cy="60" r="60"/><path class="sec" id="sec"/></svg>
 <div class="count"><b id="n">0</b><span id="of"></span></div>
 </div>
-<div class="map"><svg viewBox="0 0 515 590" role="img" aria-label="百名滝の位置を示す日本地図" id="map"></svg></div>
+<div class="map"><svg viewBox="0 0 515 590" role="img" aria-label="百名滝の位置を示す日本地図" id="map"></svg><p class="cap" id="cap"></p></div>
 </div>
 <div class="tools">
 <input id="q" type="search" placeholder="滝名・都道府県で検索" aria-label="検索">
-<select id="st" aria-label="状態"><option value="">すべて</option><option value="a">active（訪瀑済）</option><option value="n">未訪問</option></select>
+<select id="st" aria-label="状態"><option value="">すべて</option><option value="a">行った</option><option value="n">まだ</option></select>
 </div>
 <div class="tools" id="chips" role="group" aria-label="地域"></div>
 <main id="out"></main>
@@ -127,6 +154,7 @@ a{color:var(--accent)}
 <script>
 const DATA = __DATA__;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+DATA.forEach((d, i) => { d.i = i; });
 const regions = [...new Set(DATA.map(d => d.region))];
 const state = {q: "", st: "", region: ""};
 
@@ -161,13 +189,21 @@ const pj = (lon, lat) => [(lon - 129.2) * 28.75 + 14, (45.8 - lat) * 36 + 14];
 const pjo = (lon, lat) => [(lon - 122.6) * 23.4 + 345, (27.1 - lat) * 26 + 472];
 const poly = (pts, f) => '<polygon class="land" points="' + pts.map(q => f(q[0], q[1]).map(v => v.toFixed(1)).join(",")).join(" ") + '"/>';
 const PIN = '<path d="M0 0C-3-7-7-10-7-15A7 7 0 0 1 7-15C7-10 3-7 0 0Z"/><circle cy="-15" r="2.6"/>';
+const cap = document.getElementById("cap"), HINT = "ピンをタップすると滝の情報が表示されます。";
+function showPin(g) {
+  const d = DATA[+g.dataset.i];
+  cap.innerHTML = "<b>" + esc(d.name) + "</b>" + esc(d.pref) + (d.height ? " ／ " + esc(d.height.replace(/,/g, " / ")) : "") + (d.active ? " ／ active" : "") +
+    (d.url ? ' <a href="' + esc(d.url) + '" target="_blank" rel="noopener">Googleマップで開く</a>' : "");
+}
+document.getElementById("map").addEventListener("click", e => { const g = e.target.closest(".pin"); if (g) showPin(g); });
+document.getElementById("map").addEventListener("keydown", e => { const g = e.target.closest && e.target.closest(".pin"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showPin(g); } });
 function renderMap(list) {
   const pin = d => {
     if (d.lat == null) return "";
     const xy = d.lat < 28 ? pjo(d.lon, d.lat) : pj(d.lon, d.lat);
-    const g = '<g class="pin' + (d.active ? "" : " off") + '" transform="translate(' + xy[0].toFixed(1) + " " + xy[1].toFixed(1) + ') scale(.8)"><title>' + esc(d.name) + "</title>" + PIN + "</g>";
-    return d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + g + "</a>" : g;
+    return '<g class="pin' + (d.active ? "" : " off") + '" data-i="' + d.i + '" tabindex="0" role="button" aria-label="' + esc(d.name) + '" transform="translate(' + xy[0].toFixed(1) + " " + xy[1].toFixed(1) + ') scale(.8)"><title>' + esc(d.name) + '</title><circle class="hit" cy="-9" r="13"/>' + PIN + "</g>";
   };
+  cap.textContent = HINT;
   document.getElementById("map").innerHTML =
     LAND.map(p => poly(p, pj)).join("") +
     '<rect class="box" x="335" y="458" width="170" height="104" rx="4"/><text class="lbl" x="343" y="474">沖縄</text>' +
@@ -186,6 +222,7 @@ const chips = document.getElementById("chips");
 document.getElementById("q").oninput = e => { state.q = e.target.value.trim(); render(); };
 document.getElementById("st").onchange = e => { state.st = e.target.value; render(); };
 
+const ck = d => '<span class="ck' + (d.active ? ' on" role="img" aria-label="訪瀑済' : "") + '"></span>';
 function render() {
   const q = state.q.toLowerCase();
   const list = DATA.filter(d =>
@@ -198,15 +235,20 @@ function render() {
   regions.filter(r => list.some(d => d.region === r)).forEach(r => {
     const items = list.filter(d => d.region === r);
     let prev = "";
-    html += '<section><h2>' + esc(r) + '<small>' + items.filter(d => d.active).length + " / " + items.length + '</small></h2><div class="tbl"><table><thead><tr><th>都道府県</th><th>滝名</th><th>高さ</th><th>active</th><th>訪瀑日</th><th>Googleマップ</th></tr></thead><tbody>';
-    items.forEach(d => {
-      const p = d.pref === prev ? "" : d.pref; prev = d.pref;
-      html += '<tr class="' + (d.active ? "v" : "") + '"><td class="pref">' + esc(p) + '</td><td class="nm">' + esc(d.name) + '</td><td>' +
-        esc((d.height || "–").replace(/,/g, " / ")) + '</td><td>' + (d.active ? '<span class="act">active</span>' : '<span class="none">–</span>') + '</td><td>' +
+    html += '<section><h2>' + esc(r) + '<small>' + items.filter(d => d.active).length + " / " + items.length + '</small></h2><div class="tbl"><table><colgroup><col style="width:84px"><col><col style="width:110px"><col style="width:130px"><col style="width:120px"></colgroup><tbody>';
+    items.forEach((d, i) => {
+      let pc = "";
+      if (d.pref !== prev) { let n = 1; while (items[i + n] && items[i + n].pref === d.pref) n++; pc = '<td class="pref" rowspan="' + n + '">' + esc(d.pref) + '</td>'; }
+      prev = d.pref;
+      html += '<tr class="' + (d.active ? "v" : "") + '">' + pc + '<td class="nm">' + ck(d) + esc(d.name) + '</td><td>' +
+        esc((d.height || "–").replace(/,/g, " / ")) + '</td><td>' +
         (d.dates.length ? d.dates.map(esc).join("<br>") : '<span class="none">–</span>') + '</td><td>' +
-        (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">地図を開く</a>' : '<span class="none">–</span>') + '</td></tr>';
+        (d.url ? '<a href="' + esc(d.url) + '" target="_blank" rel="noopener">MAP</a>' : '<span class="none">–</span>') + '</td></tr>';
     });
-    html += "</tbody></table></div></section>";
+    html += '</tbody></table></div><ul class="cards">' + items.map(d => '<li class="' + (d.active ? "v" : "") + '"><div class="c1"><b>' + ck(d) + esc(d.name) + '</b>' +
+      (d.url ? '<a class="go" href="' + esc(d.url) + '" target="_blank" rel="noopener">MAP</a>' : "") + '</div><div class="c2"><span>' + esc(d.pref) + '</span><span>' +
+      esc((d.height || "–").replace(/,/g, " / ")) + '</span></div>' +
+      (d.dates.length ? '<div class="c3">訪瀑日 ' + d.dates.map(esc).join("、") + '</div>' : "") + '</li>').join("") + "</ul></section>";
   });
   document.getElementById("out").innerHTML = html;
 }
