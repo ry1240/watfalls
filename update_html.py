@@ -93,9 +93,7 @@ h1{font:800 clamp(28px,6vw,44px)/1.2 "Shippori Mincho","Hiragino Mincho ProN","Y
 .cards li{padding:12px 14px;border-bottom:1px solid var(--line)}
 .c1{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .c1 b{font-size:16px;display:flex;align-items:center}
-.ck{display:inline-block;flex:none;width:20px;height:20px;border:2px solid var(--sub);border-radius:4px;margin-right:10px;vertical-align:-4px;position:relative;opacity:.5}
-.ck.on{background:var(--on);border-color:var(--on);opacity:1}
-.ck.on::after{content:"";position:absolute;left:5px;top:1px;width:5px;height:10px;border:solid var(--surface);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.ck{display:inline-block;flex:none;min-width:1em;margin-right:6px;color:var(--on);font-weight:700;line-height:1}
 .go{flex:none;display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border:1px solid var(--accent);border-radius:6px;text-decoration:none;font-weight:500}
 .c2{display:flex;flex-wrap:wrap;gap:0 14px;color:var(--sub);font-size:14px}
 .c3{color:var(--sub);font-size:14px;margin-top:2px}
@@ -222,7 +220,7 @@ const chips = document.getElementById("chips");
 document.getElementById("q").oninput = e => { state.q = e.target.value.trim(); render(); };
 document.getElementById("st").onchange = e => { state.st = e.target.value; render(); };
 
-const ck = d => '<span class="ck' + (d.active ? ' on" role="img" aria-label="訪瀑済' : "") + '"></span>';
+const ck = d => '<span class="ck"' + (d.active ? ' role="img" aria-label="訪瀑済">\u2714\uFE0E' : ' aria-hidden="true">\u3000') + '</span>';
 function render() {
   const q = state.q.toLowerCase();
   const list = DATA.filter(d =>
