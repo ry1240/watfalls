@@ -1,0 +1,42 @@
+
+name: Update waterfall website
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '100falls.xlsx'
+      - 'update_html.py'
+      - '.github/workflows/update.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install openpyxl
+
+      - name: Generate HTML
+        run: python update_html.py 100falls.xlsx index.html
+
+      - name: Commit updated HTML
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Update waterfall website"
+          git push
